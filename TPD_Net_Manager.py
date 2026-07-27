@@ -169,7 +169,7 @@ class TPDNetManager:
             return
             
         node_values = self.tree.item(selected, "values")
-        current_node_ip = node_values[0] # Safely pull target IP address from index 0 mapping data rows
+        current_node_ip = node_values
         
         try:
             ip_parts = [int(x) for x in self.ent_ip.get().split('.')]
@@ -183,12 +183,10 @@ class TPDNetManager:
         new_uni2 = int(self.ent_uni2.get())
         color_choice = self.combo_color.get()
         
-        # Map dynamic dropdown configurations back to structural chip definitions 
         if "RGBW-W2" in color_choice or "RGBAW" in color_choice: strip_type = 2
         elif "RGB (" in color_choice or "GRB (" in color_choice or "BRG (" in color_choice or "RBG (" in color_choice: strip_type = 1
         else: strip_type = 0
         
-        # Multi-channel color map definitions 1-4
         matrix_map = {
             "RGBW (1234)": (1,2,3,4), "GRBW (2134)": (2,1,3,4), "BRGW (3124)": (3,1,2,4), "WRGB (4123)": (4,1,2,3),
             "RGB (123)":   (1,2,3,1), "GRB (213)":   (2,1,3,1), "BRG (312)":   (3,1,2,1), "RBG (132)":   (1,3,2,1),
@@ -196,7 +194,6 @@ class TPDNetManager:
         }
         c0, c1, c2, c3 = matrix_map.get(color_choice, (1,2,3,4))
         
-        # Ship dynamic packet variables across local hardware networks
         payload = struct.pack("<16sBBBBBBBHHHBBBBB", MAGIC_HEADER, 
                               ip_parts[0], ip_parts[1], ip_parts[2], ip_parts[3], 
                               sub_parts[0], sub_parts[1], sub_parts[2], sub_parts[3], 
