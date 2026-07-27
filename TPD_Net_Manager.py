@@ -1,12 +1,11 @@
 # ============================================================================
-# TPD FLAGGED NETWORK FLEET MANAGEMENT UTILITY (10.101.X.X - Human Ordered 1-4)
+# TPD FLAGGED NETWORK FLEET MANAGEMENT UTILITY (v1.2 - Pro-Grid Layout Fixed)
 # ============================================================================
 import socket
 import struct
 import tkinter as tk
 from tkinter import messagebox, ttk
 
-# Protocol constants matching the Teensy firmware footprint
 TPD_DISCOVER_PORT = 2711
 TPD_CONFIG_PORT   = 2712
 MAGIC_HEADER      = b"TPD_NET_CFG_MODE"
@@ -15,7 +14,7 @@ class TPDNetManager:
     def __init__(self, root):
         self.root = root
         self.root.title("TPD Professional Node Fleet Utility v1.2")
-        self.root.geometry("740x560") # Increased width to accommodate data rows comfortably
+        self.root.geometry("740x560")
         self.root.minsize(700, 500)
         self.discovered_nodes = {}
         self.create_widgets()
@@ -27,7 +26,7 @@ class TPDNetManager:
         
         ttk.Button(btn_frame, text="Scan School Network", command=self.discover_fleet).pack(side=tk.LEFT, padx=5)
         
-        # Grid table - Adjusted widths explicitly to prevent off-screen truncation
+        # Grid table
         self.tree = ttk.Treeview(btn_frame, columns=("IP", "Subnet", "Type", "Port1_Uni", "ColorOrder"), show="headings")
         self.tree.heading("IP", text="Node IP Address")
         self.tree.heading("Subnet", text="Subnet Mask")
@@ -46,29 +45,26 @@ class TPDNetManager:
         edit_frame = ttk.LabelFrame(self.root, text=" Target Node Parameters Editor ", padding=15)
         edit_frame.pack(fill=tk.BOTH, expand=True, padx=15, pady=10)
         
-        # Use two symmetrical columns to balance visual real estate cleanly
         edit_frame.columnconfigure(1, weight=1, minsize=180)
         edit_frame.columnconfigure(3, weight=1, minsize=180)
         
-        # Row 1: IP Address configuration inputs
+        # Row 0: IP Address and Subnet configuration inputs
         ttk.Label(edit_frame, text="Target IP Address:").grid(row=0, column=0, sticky=tk.W, padx=5, pady=8)
         self.ent_ip = ttk.Entry(edit_frame)
         self.ent_ip.insert(0, "10.101.1.50")
         self.ent_ip.grid(row=0, column=1, sticky=tk.EW, padx=5, pady=8)
         
-        # Row 1 Column 2: Subnet Mask configuration inputs
         ttk.Label(edit_frame, text="Target Subnet Mask:").grid(row=0, column=2, sticky=tk.W, padx=20, pady=8)
         self.ent_sub = ttk.Entry(edit_frame)
         self.ent_sub.insert(0, "255.255.255.0")
         self.ent_sub.grid(row=0, column=3, sticky=tk.EW, padx=5, pady=8)
         
-        # Row 2: Starting universe inputs
+        # Row 1: Starting universe and Protocol Selection Dropdown
         ttk.Label(edit_frame, text="Port 1 Start Universe:").grid(row=1, column=0, sticky=tk.W, padx=5, pady=8)
         self.ent_uni = ttk.Entry(edit_frame)
         self.ent_uni.insert(0, "1")
         self.ent_uni.grid(row=1, column=1, sticky=tk.EW, padx=5, pady=8)
         
-        # Row 2 Column 2: Protocol Selection Dropdown
         ttk.Label(edit_frame, text="Dynamic Pixel Protocol:").grid(row=1, column=2, sticky=tk.W, padx=20, pady=8)
         self.combo_color = ttk.Combobox(edit_frame, state="readonly", values=[
             "RGBW (1234)", "RGB (123)", "GRBW (2134)", "GRB (213)", 
@@ -77,8 +73,9 @@ class TPDNetManager:
         self.combo_color.set("RGBW (1234)")
         self.combo_color.grid(row=1, column=3, sticky=tk.EW, padx=5, pady=8)
         
-        # FIXED: Corrected syntax to use tk.BOTTOM inside the compilation wrapper
-        ttk.Button(edit_frame, text="Transmit Configuration to Node", command=self.push_config).pack(side=tk.BOTTOM, fill=tk.X, pady=10)
+        # FIXED: Changed the button from .pack() to .grid() to stop the layout crash!
+        btn_submit = ttk.Button(edit_frame, text="Transmit Configuration to Node", command=self.push_config)
+        btn_submit.grid(row=2, column=0, columnspan=4, sticky=tk.EW, pady=20)
 
     def discover_fleet(self):
         for item in self.tree.get_children(): self.tree.delete(item)
@@ -114,7 +111,7 @@ class TPDNetManager:
             return
             
         node_values = self.tree.item(selected, "values")
-        current_node_ip = node_values[0] # Grab old IP string safely out of column index 0
+        current_node_ip = node_values
         
         try:
             ip_parts = [int(x) for x in self.ent_ip.get().split('.')]
@@ -135,10 +132,9 @@ class TPDNetManager:
         }
         c0, c1, c2, c3 = matrix_map.get(color_choice, (1,2,3,4))
         
-        # Pack arrays correctly using single-byte structural maps matching your firmware registers
         payload = struct.pack("<16sBBBBBBBHHBBBBB", MAGIC_HEADER, 
-                              ip_parts[0], ip_parts[1], ip_parts[2], ip_parts[3], 
-                              sub_parts[0], sub_parts[1], sub_parts[2], sub_parts[3], 
+                              ip_parts, ip_parts, ip_parts, ip_parts, 
+                              sub_parts, sub_parts, sub_parts, sub_parts, 
                               new_uni, strip_type, c0, c1, c2, c3)
         
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
