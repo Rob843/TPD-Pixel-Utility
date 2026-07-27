@@ -1,14 +1,12 @@
-// Web Utility. Not Teensy or Arduino!! 
-// On Github as TPD-Pixel-Utility on my Github page. 7.27.26
-
 # ============================================================================
-# TPD FLAGGED NETWORK FLEET MANAGEMENT UTILITY (v1.2 - Pro-Grid Layout)
+# TPD FLAGGED NETWORK FLEET MANAGEMENT UTILITY (10.101.X.X - Human Ordered 1-4)
 # ============================================================================
 import socket
 import struct
 import tkinter as tk
 from tkinter import messagebox, ttk
 
+# Protocol constants matching the Teensy firmware footprint
 TPD_DISCOVER_PORT = 2711
 TPD_CONFIG_PORT   = 2712
 MAGIC_HEADER      = b"TPD_NET_CFG_MODE"
@@ -27,7 +25,7 @@ class TPDNetManager:
         btn_frame = ttk.Frame(self.root, padding=10)
         btn_frame.pack(fill=tk.X)
         
-        ttk.Button(btn_frame, text="Scan Network Infrastructure", command=self.discover_fleet).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Scan School Network", command=self.discover_fleet).pack(side=tk.LEFT, padx=5)
         
         # Grid table - Adjusted widths explicitly to prevent off-screen truncation
         self.tree = ttk.Treeview(btn_frame, columns=("IP", "Subnet", "Type", "Port1_Uni", "ColorOrder"), show="headings")
@@ -79,9 +77,8 @@ class TPDNetManager:
         self.combo_color.set("RGBW (1234)")
         self.combo_color.grid(row=1, column=3, sticky=tk.EW, padx=5, pady=8)
         
-        # Row 3: Full-width transmission submission action bar
-        btn_submit = ttk.Button(edit_frame, text="Transmit Configuration to Node", command=self.push_config)
-        btn_submit.grid(row=2, column=0, columnspan=4, sticky=tk.EW, pady=20)
+        # FIXED: Corrected syntax to use tk.BOTTOM inside the compilation wrapper
+        ttk.Button(edit_frame, text="Transmit Configuration to Node", command=self.push_config).pack(side=tk.BOTTOM, fill=tk.X, pady=10)
 
     def discover_fleet(self):
         for item in self.tree.get_children(): self.tree.delete(item)
@@ -117,7 +114,7 @@ class TPDNetManager:
             return
             
         node_values = self.tree.item(selected, "values")
-        current_node_ip = node_values[0]
+        current_node_ip = node_values[0] # Grab old IP string safely out of column index 0
         
         try:
             ip_parts = [int(x) for x in self.ent_ip.get().split('.')]
@@ -138,6 +135,7 @@ class TPDNetManager:
         }
         c0, c1, c2, c3 = matrix_map.get(color_choice, (1,2,3,4))
         
+        # Pack arrays correctly using single-byte structural maps matching your firmware registers
         payload = struct.pack("<16sBBBBBBBHHBBBBB", MAGIC_HEADER, 
                               ip_parts[0], ip_parts[1], ip_parts[2], ip_parts[3], 
                               sub_parts[0], sub_parts[1], sub_parts[2], sub_parts[3], 
