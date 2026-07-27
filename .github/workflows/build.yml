@@ -1,0 +1,20 @@
+name: Compile TPD Windows Executable
+on: [push]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-level: '3.11'
+    - name: Compile Package
+      run: |
+        pip install pyinstaller
+        pyinstaller --onefile --noconsole TPD_Net_Manager_v12.py
+    - name: Upload Finished Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: TPD_Utility_Windows
+        path: dist/TPD_Net_Manager_v12.exe
