@@ -4,17 +4,23 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Install Python
-      uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    
+    # Installs the correct Python version onto the cloud runner machine
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        python-level: '3.11'
-    - name: Compile Package
+        python-version: '3.11'
+        
+    # Installs PyInstaller and targets your uploaded script directly
+    - name: Install Compiler and Package App
       run: |
         pip install pyinstaller
-        pyinstaller --onefile --noconsole TPD_Net_Manager_v12.py
+        pyinstaller --onefile --noconsole TPD_Net_Manager.py
+        
+    # Ships the finished executable out as a downloadable zip package
     - name: Upload Finished Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: TPD_Utility_Windows
-        path: dist/TPD_Net_Manager_v12.exe
+        path: dist/TPD_Net_Manager.exe
